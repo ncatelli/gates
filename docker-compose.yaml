@@ -1,0 +1,18 @@
+version: '3'
+services:
+  not_gate:
+    build: .
+    environment:
+      LISTEN_ADDR: "0.0.0.0:8080"
+      GATE_TYPE: not
+      OUTPUT_ADDR: '127.0.0.1'
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://127.0.0.1:8080/healthcheck"
+        ]
+    ports:
+      - 8080:8080
