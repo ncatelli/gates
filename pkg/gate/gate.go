@@ -1,8 +1,12 @@
 package gate
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"unicode"
+
+	"github.com/gorilla/mux"
 )
 
 type IO bool
@@ -63,34 +67,41 @@ func (ts *TickState) ReturnInputsIfReady() ([]IO, error) {
 	return inputs, nil
 }
 
-type GenericGate struct {
+type MessageInput struct {
+	Resp  chan error
+	Tick  uint
+	Path  rune
+	Input IO
+}
+
+type GateService struct {
 	ticks          map[uint]*TickState
 	expectedInputs uint
 	gate           Gate
 }
 
-func NewGenericGate(g Gate) *GenericGate {
-	return &GenericGate{
+func NewGenericGate(g Gate) *GateService {
+	return &GateService{
 		ticks:          make(map[uint]*TickState),
 		expectedInputs: g.Inputs(),
 		gate:           g,
 	}
 }
 
-func (hg *GenericGate) Inputs() uint {
-	return hg.expectedInputs
+func (gs *GateService) Inputs() uint {
+	return gs.expectedInputs
 }
 
-func (hg *GenericGate) Compute(tick uint, inputs []IO) (IO, error) {
-	if len(inputs) != int(hg.Inputs()) {
-		return false, fmt.Errorf("input does not match expected length of %d", hg.Inputs())
+func (gs *GateService) Compute(tick uint, inputs []IO) (IO, error) {
+	if len(inputs) != int(gs.Inputs()) {
+		return false, fmt.Errorf("input does not match expected length of %d", gs.Inputs())
 	}
 
-	return hg.gate.Compute(tick, inputs)
+	return gs.gate.Compute(tick, inputs)
 
 }
 
-func (hg *GenericGate) ReceiveInput(tick uint, input rune, state IO) (*TickState, error) {
+func (gs *GateService) ReceiveInput(tick uint, input rune, state IO) (*TickState, error) {
 	// calculate the offset of the input from the rune (path)
 	inputOffset, err := runeToNormalizedOffset(input)
 	if err != nil {
@@ -98,19 +109,19 @@ func (hg *GenericGate) ReceiveInput(tick uint, input rune, state IO) (*TickState
 	}
 
 	// verify that the input is within range
-	if (inputOffset + 1) > hg.expectedInputs {
-		return nil, fmt.Errorf("offset %v(%d) greater than max %d", input, inputOffset, hg.expectedInputs)
+	if (inputOffset + 1) > gs.expectedInputs {
+		return nil, fmt.Errorf("offset %c(%d) greater than max %d", input, inputOffset, gs.expectedInputs)
 	}
 
-	ts, prs := hg.ticks[tick]
+	ts, prs := gs.ticks[tick]
 	if !prs {
-		ts = NewTickState(hg.expectedInputs)
-		hg.ticks[tick] = ts
+		ts = NewTickState(gs.expectedInputs)
+		gs.ticks[tick] = ts
 	}
 
 	// error if inputs are clobbered.
 	if ts.inputs[inputOffset].received {
-		return nil, fmt.Errorf("input (%v) for tick %d already set", input, tick)
+		return nil, fmt.Errorf("input (%c) for tick %d already set", input, tick)
 	}
 
 	ts.inputs[inputOffset] = PendingInput{
@@ -130,6 +141,55 @@ func (hg *GenericGate) ReceiveInput(tick uint, input rune, state IO) (*TickState
 	return ts, nil
 }
 
+type ServicePostBody struct {
+	State bool `json:"state"`
+	Tick  uint `json:"tick"`
+}
+
+func (gs *GateService) RegisterPath(r *mux.Router, outbound chan<- MessageInput) error {
+
+	inputs := gs.Inputs()
+	for i := uint(0); i < inputs; i++ {
+		p, err := OffsetToRune(i)
+		if err != nil {
+			return err
+		}
+		path := fmt.Sprintf("/input/%c", p)
+
+		r.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+			var inputId rune = p
+			var in ServicePostBody
+			dec := json.NewDecoder(r.Body)
+			err := dec.Decode(&in)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			resp := make(chan error)
+			msg := MessageInput{
+				Resp:  resp,
+				Tick:  in.Tick,
+				Path:  inputId,
+				Input: IO(in.State),
+			}
+
+			// send the change to the gate service
+			outbound <- msg
+			// wait for the response from the gate service
+			err = <-resp
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			w.WriteHeader(http.StatusAccepted)
+		}).Methods(http.MethodPost)
+	}
+
+	return nil
+}
+
 func runeToNormalizedOffset(r rune) (uint, error) {
 	min := uint('a')
 	max := uint('z')
@@ -142,7 +202,7 @@ func runeToNormalizedOffset(r rune) (uint, error) {
 		return offset, nil
 	}
 
-	return 0, fmt.Errorf("value out of range: must be between a-z, got %v", r)
+	return 0, fmt.Errorf("value out of range: must be between a-z, got %c", r)
 }
 
 func OffsetToRune(offset uint) (rune, error) {
@@ -156,5 +216,4 @@ func OffsetToRune(offset uint) (rune, error) {
 	}
 
 	return 0, fmt.Errorf("value out of range: must be between %d-%d, got %d", min, max, offset)
-
 }

@@ -5,22 +5,17 @@ import (
 	"github.com/ncatelli/gates/pkg/gate"
 )
 
+type PathGenerator interface {
+	RegisterPath(*mux.Router, chan<- gate.MessageInput) error
+}
+
 // Generates routes for a given gate.
-func New(g gate.Gate) (*mux.Router, error) {
+func New(pg PathGenerator, inbound chan<- gate.MessageInput) (*mux.Router, error) {
 	m := mux.NewRouter()
 
-	/*
-		inputs := g.Inputs()
-			for i := uint(0); i < inputs; i++ {
-				p, err := gate.OffsetToRune(i)
-				if err != nil {
-					return nil, err
-				}
-				path := fmt.Sprintf("/input/%s", p)
-
-				route := m.Handle(path, r).Methods(http.MethodPost)
-			}
-	*/
+	if err := pg.RegisterPath(m, inbound); err != nil {
+		return nil, err
+	}
 
 	return m, nil
 }

@@ -17,35 +17,34 @@ import (
 	"github.com/ncatelli/gates/pkg/router"
 )
 
-type MessageInput struct {
-	resp  chan error
-	tick  uint
-	path  rune
-	input gate.IO
-}
-
-func startStateManagerService(g *gate.GenericGate) (chan<- MessageInput, chan<- bool) {
+func startStateManagerService(g *gate.GateService) (chan<- gate.MessageInput, chan<- bool) {
 	quit := make(chan bool)
-	messages := make(chan MessageInput)
+	messages := make(chan gate.MessageInput)
 
-	go func(g *gate.GenericGate, msgs <-chan MessageInput, quit <-chan bool) {
+	go func(g *gate.GateService, msgs <-chan gate.MessageInput, quit <-chan bool) {
 		for {
 			select {
 			case msg := <-msgs:
-				ts, err := g.ReceiveInput(msg.tick, msg.path, msg.input)
+				ts, err := g.ReceiveInput(msg.Tick, msg.Path, msg.Input)
 				if err != nil {
-					msg.resp <- err
+					msg.Resp <- err
+					continue
 				}
 
 				inputs, err := ts.ReturnInputsIfReady()
 				if err != nil {
-					msg.resp <- err
+					msg.Resp <- nil
+					continue
 				}
 
-				_, err = g.Compute(msg.tick, inputs)
+				output, err := g.Compute(msg.Tick, inputs)
 				if err != nil {
-					msg.resp <- err
+					msg.Resp <- err
+					continue
 				}
+
+				fmt.Printf("gate compute state: input(%v) output(%v)", msg.Input, output)
+				msg.Resp <- nil
 			case <-quit:
 				return
 			}
@@ -76,8 +75,8 @@ func instantiateGateFromConfig(c *config.Config) gate.Gate {
 	return g
 }
 
-func startHTTPServer(c *config.Config, g gate.Gate, wg *sync.WaitGroup) *http.Server {
-	r, _ := router.New(g)
+func startHTTPServer(c *config.Config, g *gate.GateService, msgs chan<- gate.MessageInput, wg *sync.WaitGroup) *http.Server {
+	r, _ := router.New(g, msgs)
 	r.HandleFunc(`/healthcheck`, healthHandler).Methods("GET")
 	srv := &http.Server{
 		Addr:    c.ListenAddr,
@@ -113,14 +112,14 @@ func main() {
 			panic("invalid gate config")
 		}
 		gg := gate.NewGenericGate(g)
-		_, stateQuitChan := startStateManagerService(gg)
+		inboundMsgs, stateQuitChan := startStateManagerService(gg)
 
 		log.Printf("Starting server on %s\n", c.ListenAddr)
 		log.Printf("Configured as %s gate\n", c.GateTy)
 
 		httpServerExitDone := &sync.WaitGroup{}
 		httpServerExitDone.Add(1)
-		srv := startHTTPServer(&c, g, httpServerExitDone)
+		srv := startHTTPServer(&c, gg, inboundMsgs, httpServerExitDone)
 
 		// blocks for shutdown. If a SIGHUP happens it will gracefully
 		// restart the server.

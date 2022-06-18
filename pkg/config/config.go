@@ -13,7 +13,17 @@ type ErrInvalidGateType struct {
 }
 
 func (e *ErrInvalidGateType) Error() string {
-	return fmt.Sprintf("gate type is invalid: [%v]", e.gate)
+	return fmt.Sprintf("gate type is invalid: [%s]", e.gate)
+}
+
+// ErrInvalidOutputType represents an invalid output being passed in the `OUTPUT_TYPE`
+// env.
+type ErrInvalidOutputType struct {
+	output string
+}
+
+func (e *ErrInvalidOutputType) Error() string {
+	return fmt.Sprintf("output type is invalid: [%s]", e.output)
 }
 
 // ErrUndefinedConfig represents a configuration hasn't been specified.
@@ -28,7 +38,8 @@ func (e *ErrUndefinedConfig) Error() string {
 type Config struct {
 	ListenAddr string `env:"ListenAddr" envDefault:"0.0.0.0:8080"`
 	GateTy     string `env:"GATE_TYPE"`
-	OutputAddr string `env:"OUTPUT_ADDR"`
+	OutputTy   string `env:"OUTPUT_TYPE"`
+	OutputAddr string `env:"OUTPUT_ADDR" envDefault:"127.0.0.1"`
 }
 
 // New initializes a Config, attempting to parse parames from Envs.
@@ -49,11 +60,24 @@ func New() (Config, error) {
 		valid = false
 	}
 
-	if valid {
-		return c, nil
-	} else {
+	if !valid {
 		return c, &ErrInvalidGateType{
 			gate: c.GateTy,
 		}
 	}
+
+	switch c.GateTy {
+	case "gate":
+		valid = true
+	default:
+		valid = false
+	}
+
+	if !valid {
+		return c, &ErrInvalidOutputType{
+			output: c.OutputTy,
+		}
+	}
+
+	return c, nil
 }
