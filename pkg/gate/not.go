@@ -1,20 +1,22 @@
 package gate
 
-type Not struct {
-	tick uint
-}
+import (
+	"fmt"
+)
+
+type Not struct{}
 
 func (not *Not) Inputs() uint {
 	return 1
 }
 
-func (not *Not) InputPaths() []string {
-	return []string{"a"}
-}
+func (not *Not) Compute(tick uint, inputs []IO) (IO, error) {
+	if len(inputs) != int(not.Inputs()) {
+		return false, fmt.Errorf("input does not match expected length of %d", not.Inputs())
+	}
 
-func (not *Not) CurrentTick() uint {
-	return not.tick
-}
+	input := inputs[0]
+	output := !input
 
-func (not *Not) Tick(tick uint, inputs []IO) {
+	return output, nil
 }
