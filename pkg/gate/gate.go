@@ -143,5 +143,18 @@ func runeToNormalizedOffset(r rune) (uint, error) {
 	}
 
 	return 0, fmt.Errorf("value out of range: must be between a-z, got %v", r)
+}
+
+func OffsetToRune(offset uint) (rune, error) {
+	var min uint = 0
+	max := uint('z') - uint('a')
+
+	if offset <= max || offset >= min {
+		r := offset + uint('a')
+
+		return rune(r), nil
+	}
+
+	return 0, fmt.Errorf("value out of range: must be between %d-%d, got %d", min, max, offset)
 
 }
