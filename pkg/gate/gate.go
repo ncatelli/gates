@@ -76,14 +76,19 @@ func (hg *GenericGate) ReceiveInput(tick uint, input rune, state IO) (*TickState
 	}
 
 	ts, prs := hg.ticks[tick]
-	if prs {
-		ts.inputs[inputOffset] = PendingInput{
-			received: true,
-			state:    state,
-		}
-	} else {
-		ts := NewTickState(hg.expectedInputs)
+	if !prs {
+		ts = NewTickState(hg.expectedInputs)
 		hg.ticks[tick] = ts
+	}
+
+	// error if inputs are clobbered.
+	if ts.inputs[inputOffset].received {
+		return nil, fmt.Errorf("input (%v) for tick %d already set", input, tick)
+	}
+
+	ts.inputs[inputOffset] = PendingInput{
+		received: true,
+		state:    state,
 	}
 
 	// check if all inputs have been received, if not return early.
