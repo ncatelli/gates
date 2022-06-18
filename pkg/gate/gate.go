@@ -36,6 +36,33 @@ func NewTickState(expectedInputs uint) *TickState {
 	}
 }
 
+// AllInputsReceived returns true if every pending input has been marked received.
+func (ts *TickState) AllInputsReceived() bool {
+	// check if all inputs have been received, if not return early.
+	for _, input := range ts.inputs {
+		if !input.received {
+			return false
+		}
+	}
+
+	return true
+}
+
+// ReturnInputsIfReady returns a slice of all IO state in order if called after
+// all have been received. Otherwise an error is returned.
+func (ts *TickState) ReturnInputsIfReady() ([]IO, error) {
+	if !ts.AllInputsReceived() {
+		return nil, fmt.Errorf("input is still pending")
+	}
+
+	inputs := make([]IO, 0, len(ts.inputs))
+	for _, pending := range ts.inputs {
+		inputs = append(inputs, pending.state)
+	}
+
+	return inputs, nil
+}
+
 type GenericGate struct {
 	ticks          map[uint]*TickState
 	expectedInputs uint
