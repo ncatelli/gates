@@ -124,15 +124,6 @@ func (gs *GateService) ReceiveInput(tick uint, input rune, state models.IO) (*Ti
 		state:    state,
 	}
 
-	// check if all inputs have been received, if not return early.
-	for _, input := range ts.inputs {
-		if !input.received {
-			return nil, nil
-		}
-	}
-
-	// lastly if all inputs are ready, return the tick state, representing
-	// completed tick.
 	return ts, nil
 }
 
