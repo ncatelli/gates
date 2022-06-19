@@ -30,19 +30,19 @@ func startStateManagerService(g *gate.GateService) (chan<- models.MessageInput, 
 			case msg := <-msgs:
 				ts, err := g.ReceiveInput(msg.Tick, msg.Path, msg.Input)
 				if err != nil {
-					msg.Resp <- models.GateResponse{Err: err, OutputReady: false}
+					msg.Resp <- models.GateResponse{Err: err, OutputReady: false, Output: false}
 					continue
 				}
 
 				inputs, err := ts.ReturnInputsIfReady()
 				if err != nil {
-					msg.Resp <- models.GateResponse{Err: nil, OutputReady: false}
+					msg.Resp <- models.GateResponse{Err: nil, OutputReady: false, Output: false}
 					continue
 				}
 
 				output, err := g.Compute(msg.Tick, inputs)
 				if err != nil {
-					msg.Resp <- models.GateResponse{Err: err, OutputReady: false}
+					msg.Resp <- models.GateResponse{Err: err, OutputReady: false, Output: false}
 					continue
 				}
 

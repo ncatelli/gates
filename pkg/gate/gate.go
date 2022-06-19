@@ -147,8 +147,7 @@ func (gs *GateService) RegisterPath(r *mux.Router, outbound chan<- models.Messag
 
 		r.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 			var inputId rune = p
-			var in models.ServicePostBody
-			tick := in.Tick
+			in := models.ServicePostBody{}
 			op := gs.op
 
 			dec := json.NewDecoder(r.Body)
@@ -157,6 +156,8 @@ func (gs *GateService) RegisterPath(r *mux.Router, outbound chan<- models.Messag
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
+
+			tick := in.Tick
 
 			resp := make(chan models.GateResponse)
 			msg := models.MessageInput{
