@@ -47,7 +47,7 @@ func TestGateShouldReceiveInputShould(t *testing.T) {
 		}
 	})
 
-	t.Run("return all nil if all inputs aren't satisfied", func(t *testing.T) {
+	t.Run("return ts that flags non-ready if all inputs aren't satisfied", func(t *testing.T) {
 		gate := NewGenericGate(&MockGate{
 			inputs: 2,
 		}, &noopOutputter{})
@@ -55,8 +55,8 @@ func TestGateShouldReceiveInputShould(t *testing.T) {
 		ts, err := gate.ReceiveInput(0, 'a', true)
 		if err != nil {
 			t.Error(err)
-		} else if ts != nil {
-			t.Error("ts should be nil")
+		} else if ts.AllInputsReceived() {
+			t.Error("ts should not be ready")
 		}
 	})
 
