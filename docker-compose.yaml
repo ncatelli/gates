@@ -5,7 +5,8 @@ services:
     environment:
       LISTEN_ADDR: "0.0.0.0:8080"
       GATE_TYPE: not
-      OUTPUT_TYPE: stdout
+      OUTPUT_TYPE: http
+      OUTPUT_ADDRS: 'http://and_gate:8080/input/a'
     healthcheck:
       test:
         [
@@ -16,13 +17,13 @@ services:
         ]
     ports:
       - 8080:8080
-  and_gate:
+  or_gate:
     build: .
     environment:
-      LISTEN_ADDR: "0.0.0.0:80"
-      GATE_TYPE: and
+      LISTEN_ADDR: "0.0.0.0:8080"
+      GATE_TYPE: or
       OUTPUT_TYPE: http
-      OUTPUT_ADDRS: 'http://not_gate:8080/input/a'
+      OUTPUT_ADDRS: 'http://and_gate:8080/input/b'
     healthcheck:
       test:
         [
@@ -33,3 +34,19 @@ services:
         ]
     ports:
       - 8081:8080
+  and_gate:
+    build: .
+    environment:
+      LISTEN_ADDR: "0.0.0.0:80"
+      GATE_TYPE: and
+      OUTPUT_TYPE: stdout
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://127.0.0.1:8080/healthcheck"
+        ]
+    ports:
+      - 8082:8080
