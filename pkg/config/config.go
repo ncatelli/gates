@@ -55,6 +55,8 @@ func New() (Config, error) {
 	switch c.GateTy {
 	case "and":
 		valid = true
+	case "or":
+		valid = true
 	case "not":
 		valid = true
 	default:
