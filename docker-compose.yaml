@@ -4,7 +4,7 @@ services:
     build: .
     environment:
       LISTEN_ADDR: "0.0.0.0:8080"
-      GATE_TYPE: not
+      SERVICE_TYPE: not
       OUTPUT_TYPE: http
       OUTPUT_ADDRS: 'http://and_gate:8080/input/a'
     healthcheck:
@@ -21,7 +21,7 @@ services:
     build: .
     environment:
       LISTEN_ADDR: "0.0.0.0:8080"
-      GATE_TYPE: or
+      SERVICE_TYPE: or
       OUTPUT_TYPE: http
       OUTPUT_ADDRS: 'http://and_gate:8080/input/b'
     healthcheck:
@@ -38,7 +38,7 @@ services:
     build: .
     environment:
       LISTEN_ADDR: "0.0.0.0:80"
-      GATE_TYPE: and
+      SERVICE_TYPE: and
       OUTPUT_TYPE: stdout
     healthcheck:
       test:
@@ -54,7 +54,7 @@ services:
     build: .
     environment:
       LISTEN_ADDR: "0.0.0.0:80"
-      GATE_TYPE: xor
+      SERVICE_TYPE: xor
       OUTPUT_TYPE: stdout
     healthcheck:
       test:

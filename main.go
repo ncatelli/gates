@@ -67,7 +67,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 func instantiateGateFromConfig(c *config.Config) gate.Gate {
 	var g gate.Gate = nil
 
-	switch c.GateTy {
+	switch c.ServiceTy {
 	case "not":
 		g = &gate.Not{}
 	case "and":
@@ -145,7 +145,7 @@ func main() {
 		inboundMsgs, stateQuitChan := startStateManagerService(gg)
 
 		log.Printf("Starting server on %s\n", c.ListenAddr)
-		log.Printf("Configured as %s gate\n", c.GateTy)
+		log.Printf("Configured as %s gate\n", c.ServiceTy)
 
 		httpServerExitDone := &sync.WaitGroup{}
 		httpServerExitDone.Add(1)

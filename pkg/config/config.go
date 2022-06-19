@@ -38,7 +38,7 @@ func (e *ErrUndefinedConfig) Error() string {
 // global level.
 type Config struct {
 	ListenAddr  string    `env:"ListenAddr" envDefault:"0.0.0.0:8080"`
-	GateTy      string    `env:"GATE_TYPE"`
+	ServiceTy   string    `env:"SERVICE_TYPE"`
 	OutputTy    string    `env:"OUTPUT_TYPE" envDefault:"stdout"`
 	OutputAddrs []url.URL `env:"OUTPUT_ADDRS" envSeparator:" " envDefault:""`
 }
@@ -52,7 +52,7 @@ func New() (Config, error) {
 	}
 
 	valid := false
-	switch c.GateTy {
+	switch c.ServiceTy {
 	case "and":
 		valid = true
 	case "or":
@@ -67,7 +67,7 @@ func New() (Config, error) {
 
 	if !valid {
 		return c, &ErrInvalidGateType{
-			gate: c.GateTy,
+			gate: c.ServiceTy,
 		}
 	}
 
