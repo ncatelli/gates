@@ -68,7 +68,7 @@ func New() (Config, error) {
 	}
 
 	switch c.OutputTy {
-	case "gate":
+	case "http":
 		valid = true
 	case "stdout":
 		valid = true

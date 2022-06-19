@@ -1,6 +1,6 @@
 version: '3'
 services:
-  not_gate:
+  notgate:
     build: .
     environment:
       LISTEN_ADDR: "0.0.0.0:8080"
@@ -16,12 +16,13 @@ services:
         ]
     ports:
       - 8080:8080
-  and_gate:
+  andgate:
     build: .
     environment:
-      LISTEN_ADDR: "0.0.0.0:8080"
+      LISTEN_ADDR: "0.0.0.0:80"
       GATE_TYPE: and
-      OUTPUT_TYPE: stdout
+      OUTPUT_TYPE: http
+      OUTPUT_ADDRS: 'http://notgate:8080/input/a'
     healthcheck:
       test:
         [
