@@ -59,6 +59,8 @@ func New() (Config, error) {
 		valid = true
 	case "not":
 		valid = true
+	case "xor":
+		valid = true
 	default:
 		valid = false
 	}
