@@ -7,19 +7,15 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/ncatelli/gates/pkg/gate"
+	"github.com/ncatelli/gates/pkg/models"
 )
 
-type Outputter interface {
-	Output(uint, gate.IO) error
-}
-
 type HttpOutputter struct {
-	endpoint *url.URL
+	Endpoints []*url.URL
 }
 
-func (ho *HttpOutputter) Output(tick uint, state gate.IO) error {
-	reqBody := gate.ServicePostBody{
+func (ho *HttpOutputter) Output(tick uint, state models.IO) error {
+	reqBody := models.ServicePostBody{
 		Tick:  tick,
 		State: bool(state),
 	}
@@ -29,11 +25,13 @@ func (ho *HttpOutputter) Output(tick uint, state gate.IO) error {
 		return err
 	}
 
-	resp, err := http.Post(ho.endpoint.String(), "application/json", bytes.NewReader(buf))
-	if resp.StatusCode != 202 {
-		return fmt.Errorf("invalid status code from outputter: expected 202 got %d", resp.StatusCode)
-	} else if err != nil {
-		return err
+	for _, u := range ho.Endpoints {
+		resp, err := http.Post(u.String(), "application/json", bytes.NewReader(buf))
+		if resp.StatusCode != 202 {
+			return fmt.Errorf("invalid status code from outputter: expected 202 got %d", resp.StatusCode)
+		} else if err != nil {
+			return err
+		}
 	}
 
 	return nil

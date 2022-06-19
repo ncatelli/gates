@@ -7,18 +7,18 @@ import (
 	"unicode"
 
 	"github.com/gorilla/mux"
+	"github.com/ncatelli/gates/pkg/models"
+	"github.com/ncatelli/gates/pkg/outputter"
 )
-
-type IO bool
 
 type Gate interface {
 	Inputs() uint
-	Compute(tick uint, input []IO) (IO, error)
+	Compute(tick uint, input []models.IO) (models.IO, error)
 }
 
 type PendingInput struct {
 	received bool
-	state    IO
+	state    models.IO
 }
 
 type TickState struct {
@@ -54,12 +54,12 @@ func (ts *TickState) AllInputsReceived() bool {
 
 // ReturnInputsIfReady returns a slice of all IO state in order if called after
 // all have been received. Otherwise an error is returned.
-func (ts *TickState) ReturnInputsIfReady() ([]IO, error) {
+func (ts *TickState) ReturnInputsIfReady() ([]models.IO, error) {
 	if !ts.AllInputsReceived() {
 		return nil, fmt.Errorf("input is still pending")
 	}
 
-	inputs := make([]IO, 0, len(ts.inputs))
+	inputs := make([]models.IO, 0, len(ts.inputs))
 	for _, pending := range ts.inputs {
 		inputs = append(inputs, pending.state)
 	}
@@ -67,24 +67,19 @@ func (ts *TickState) ReturnInputsIfReady() ([]IO, error) {
 	return inputs, nil
 }
 
-type MessageInput struct {
-	Resp  chan error
-	Tick  uint
-	Path  rune
-	Input IO
-}
-
 type GateService struct {
 	ticks          map[uint]*TickState
 	expectedInputs uint
 	gate           Gate
+	op             outputter.Outputter
 }
 
-func NewGenericGate(g Gate) *GateService {
+func NewGenericGate(g Gate, op outputter.Outputter) *GateService {
 	return &GateService{
 		ticks:          make(map[uint]*TickState),
 		expectedInputs: g.Inputs(),
 		gate:           g,
+		op:             op,
 	}
 }
 
@@ -92,7 +87,7 @@ func (gs *GateService) Inputs() uint {
 	return gs.expectedInputs
 }
 
-func (gs *GateService) Compute(tick uint, inputs []IO) (IO, error) {
+func (gs *GateService) Compute(tick uint, inputs []models.IO) (models.IO, error) {
 	if len(inputs) != int(gs.Inputs()) {
 		return false, fmt.Errorf("input does not match expected length of %d", gs.Inputs())
 	}
@@ -101,7 +96,7 @@ func (gs *GateService) Compute(tick uint, inputs []IO) (IO, error) {
 
 }
 
-func (gs *GateService) ReceiveInput(tick uint, input rune, state IO) (*TickState, error) {
+func (gs *GateService) ReceiveInput(tick uint, input rune, state models.IO) (*TickState, error) {
 	// calculate the offset of the input from the rune (path)
 	inputOffset, err := runeToNormalizedOffset(input)
 	if err != nil {
@@ -141,13 +136,7 @@ func (gs *GateService) ReceiveInput(tick uint, input rune, state IO) (*TickState
 	return ts, nil
 }
 
-type ServicePostBody struct {
-	State bool `json:"state"`
-	Tick  uint `json:"tick"`
-}
-
-func (gs *GateService) RegisterPath(r *mux.Router, outbound chan<- MessageInput) error {
-
+func (gs *GateService) RegisterPath(r *mux.Router, outbound chan<- models.MessageInput) error {
 	inputs := gs.Inputs()
 	for i := uint(0); i < inputs; i++ {
 		p, err := OffsetToRune(i)
@@ -158,7 +147,10 @@ func (gs *GateService) RegisterPath(r *mux.Router, outbound chan<- MessageInput)
 
 		r.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 			var inputId rune = p
-			var in ServicePostBody
+			var in models.ServicePostBody
+			tick := in.Tick
+			op := gs.op
+
 			dec := json.NewDecoder(r.Body)
 			err := dec.Decode(&in)
 			if err != nil {
@@ -166,21 +158,29 @@ func (gs *GateService) RegisterPath(r *mux.Router, outbound chan<- MessageInput)
 				return
 			}
 
-			resp := make(chan error)
-			msg := MessageInput{
+			resp := make(chan models.GateResponse)
+			msg := models.MessageInput{
 				Resp:  resp,
-				Tick:  in.Tick,
+				Tick:  tick,
 				Path:  inputId,
-				Input: IO(in.State),
+				Input: models.IO(in.State),
 			}
 
 			// send the change to the gate service
 			outbound <- msg
 			// wait for the response from the gate service
-			err = <-resp
-			if err != nil {
+			gateResp := <-resp
+			if gateResp.Err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
+			}
+
+			if gateResp.OutputReady {
+				err = op.Output(tick, gateResp.Output)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
 			}
 
 			w.WriteHeader(http.StatusAccepted)

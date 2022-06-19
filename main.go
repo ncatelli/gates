@@ -9,42 +9,44 @@ import (
 	"syscall"
 
 	"net/http"
+	"net/url"
 
 	"fmt"
 
 	"github.com/ncatelli/gates/pkg/config"
 	"github.com/ncatelli/gates/pkg/gate"
+	"github.com/ncatelli/gates/pkg/models"
+	"github.com/ncatelli/gates/pkg/outputter"
 	"github.com/ncatelli/gates/pkg/router"
 )
 
-func startStateManagerService(g *gate.GateService) (chan<- gate.MessageInput, chan<- bool) {
+func startStateManagerService(g *gate.GateService) (chan<- models.MessageInput, chan<- bool) {
 	quit := make(chan bool)
-	messages := make(chan gate.MessageInput)
+	messages := make(chan models.MessageInput)
 
-	go func(g *gate.GateService, msgs <-chan gate.MessageInput, quit <-chan bool) {
+	go func(g *gate.GateService, msgs <-chan models.MessageInput, quit <-chan bool) {
 		for {
 			select {
 			case msg := <-msgs:
 				ts, err := g.ReceiveInput(msg.Tick, msg.Path, msg.Input)
 				if err != nil {
-					msg.Resp <- err
+					msg.Resp <- models.GateResponse{Err: err, OutputReady: false}
 					continue
 				}
 
 				inputs, err := ts.ReturnInputsIfReady()
 				if err != nil {
-					msg.Resp <- nil
+					msg.Resp <- models.GateResponse{Err: nil, OutputReady: false}
 					continue
 				}
 
 				output, err := g.Compute(msg.Tick, inputs)
 				if err != nil {
-					msg.Resp <- err
+					msg.Resp <- models.GateResponse{Err: err, OutputReady: false}
 					continue
 				}
 
-				fmt.Printf("gate compute state: input(%v) output(%v)", msg.Input, output)
-				msg.Resp <- nil
+				msg.Resp <- models.GateResponse{Err: nil, OutputReady: true, Output: output}
 			case <-quit:
 				return
 			}
@@ -75,7 +77,25 @@ func instantiateGateFromConfig(c *config.Config) gate.Gate {
 	return g
 }
 
-func startHTTPServer(c *config.Config, g *gate.GateService, msgs chan<- gate.MessageInput, wg *sync.WaitGroup) *http.Server {
+func instantiateOutputterFromConfig(c *config.Config) outputter.Outputter {
+	var o outputter.Outputter = nil
+
+	switch c.OutputTy {
+	case "stdout":
+		o = &outputter.StdOutOutputter{}
+	case "http":
+		endpoints := make([]*url.URL, 0, len(c.OutputAddrs))
+		for _, addr := range c.OutputAddrs {
+			endpoints = append(endpoints, &addr)
+		}
+
+		o = &outputter.HttpOutputter{Endpoints: endpoints}
+	}
+
+	return o
+}
+
+func startHTTPServer(c *config.Config, g *gate.GateService, msgs chan<- models.MessageInput, wg *sync.WaitGroup) *http.Server {
 	r, _ := router.New(g, msgs)
 	r.HandleFunc(`/healthcheck`, healthHandler).Methods("GET")
 	srv := &http.Server{
@@ -104,14 +124,20 @@ func main() {
 	for {
 		c, e := config.New()
 		if e != nil {
-			log.Fatal("unable to parse config params")
+			log.Fatalf("unable to parse config params: %v", e)
 		}
 
 		g := instantiateGateFromConfig(&c)
 		if g == nil {
 			panic("invalid gate config")
 		}
-		gg := gate.NewGenericGate(g)
+
+		o := instantiateOutputterFromConfig(&c)
+		if o == nil {
+			panic("invalid gate config")
+		}
+
+		gg := gate.NewGenericGate(g, o)
 		inboundMsgs, stateQuitChan := startStateManagerService(gg)
 
 		log.Printf("Starting server on %s\n", c.ListenAddr)

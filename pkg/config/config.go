@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/caarlos0/env/v6"
 )
@@ -36,10 +37,10 @@ func (e *ErrUndefinedConfig) Error() string {
 // Config stores configuration parameters for interacting with the server at a
 // global level.
 type Config struct {
-	ListenAddr string `env:"ListenAddr" envDefault:"0.0.0.0:8080"`
-	GateTy     string `env:"GATE_TYPE"`
-	OutputTy   string `env:"OUTPUT_TYPE"`
-	OutputAddr string `env:"OUTPUT_ADDR" envDefault:"127.0.0.1"`
+	ListenAddr  string    `env:"ListenAddr" envDefault:"0.0.0.0:8080"`
+	GateTy      string    `env:"GATE_TYPE"`
+	OutputTy    string    `env:"OUTPUT_TYPE" envDefault:"stdout"`
+	OutputAddrs []url.URL `env:"OUTPUT_ADDRS" envSeparator:" " envDefault:""`
 }
 
 // New initializes a Config, attempting to parse parames from Envs.
@@ -66,8 +67,10 @@ func New() (Config, error) {
 		}
 	}
 
-	switch c.GateTy {
+	switch c.OutputTy {
 	case "gate":
+		valid = true
+	case "stdout":
 		valid = true
 	default:
 		valid = false

@@ -2,15 +2,15 @@ package router
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/ncatelli/gates/pkg/gate"
+	"github.com/ncatelli/gates/pkg/models"
 )
 
 type PathGenerator interface {
-	RegisterPath(*mux.Router, chan<- gate.MessageInput) error
+	RegisterPath(*mux.Router, chan<- models.MessageInput) error
 }
 
 // Generates routes for a given gate.
-func New(pg PathGenerator, inbound chan<- gate.MessageInput) (*mux.Router, error) {
+func New(pg PathGenerator, inbound chan<- models.MessageInput) (*mux.Router, error) {
 	m := mux.NewRouter()
 
 	if err := pg.RegisterPath(m, inbound); err != nil {

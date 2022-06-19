@@ -2,12 +2,14 @@ package gate
 
 import (
 	"testing"
+
+	"github.com/ncatelli/gates/pkg/models"
 )
 
 func TestAndShouldCompute(t *testing.T) {
 	t.Run("the correct value for truth table", func(t *testing.T) {
 		var tick uint = 0
-		truthTable := [][3]IO{
+		truthTable := [][3]models.IO{
 			{false, false, false},
 			{true, false, false},
 			{false, true, false},
@@ -15,7 +17,7 @@ func TestAndShouldCompute(t *testing.T) {
 		}
 
 		for _, prop := range truthTable {
-			gate := NewGenericGate(&And{})
+			gate := NewGenericGate(&And{}, &noopOutputter{})
 
 			a_in := prop[0]
 			b_in := prop[1]

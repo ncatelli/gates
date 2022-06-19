@@ -2,18 +2,20 @@ package gate
 
 import (
 	"testing"
+
+	"github.com/ncatelli/gates/pkg/models"
 )
 
 func TestNotShouldCompute(t *testing.T) {
 	t.Run("the inverse of a its input", func(t *testing.T) {
 		var tick uint = 0
-		truthTable := [][2]IO{
+		truthTable := [][2]models.IO{
 			{false, true},
 			{true, false},
 		}
 
 		for _, prop := range truthTable {
-			gate := NewGenericGate(&Not{})
+			gate := NewGenericGate(&Not{}, &noopOutputter{})
 			a_in := prop[1]
 			expected_output := prop[1]
 
