@@ -50,3 +50,19 @@ services:
         ]
     ports:
       - 8082:8080
+  xor_gate:
+    build: .
+    environment:
+      LISTEN_ADDR: "0.0.0.0:80"
+      GATE_TYPE: xor
+      OUTPUT_TYPE: stdout
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://127.0.0.1:8080/healthcheck"
+        ]
+    ports:
+      - 8083:8080
