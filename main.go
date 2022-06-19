@@ -141,7 +141,7 @@ func main() {
 			panic("invalid gate config")
 		}
 
-		gg := gate.NewGenericGate(g, o)
+		gg := gate.NewGateService(g, o)
 		inboundMsgs, stateQuitChan := startStateManagerService(gg)
 
 		log.Printf("Starting server on %s\n", c.ListenAddr)

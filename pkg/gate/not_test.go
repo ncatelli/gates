@@ -15,7 +15,7 @@ func TestNotShouldCompute(t *testing.T) {
 		}
 
 		for _, prop := range truthTable {
-			gate := NewGenericGate(&Not{}, &noopOutputter{})
+			gate := NewGateService(&Not{}, &noopOutputter{})
 			a_in := prop[1]
 			expected_output := prop[1]
 

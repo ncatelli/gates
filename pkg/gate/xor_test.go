@@ -17,7 +17,7 @@ func TestXorShouldCompute(t *testing.T) {
 		}
 
 		for _, prop := range truthTable {
-			gate := NewGenericGate(&Xor{}, &noopOutputter{})
+			gate := NewGateService(&Xor{}, &noopOutputter{})
 
 			a_in := prop[0]
 			b_in := prop[1]

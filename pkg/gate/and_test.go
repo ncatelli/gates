@@ -17,7 +17,7 @@ func TestAndShouldCompute(t *testing.T) {
 		}
 
 		for _, prop := range truthTable {
-			gate := NewGenericGate(&And{}, &noopOutputter{})
+			gate := NewGateService(&And{}, &noopOutputter{})
 
 			a_in := prop[0]
 			b_in := prop[1]

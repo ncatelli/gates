@@ -74,7 +74,7 @@ type GateService struct {
 	op             outputter.Outputter
 }
 
-func NewGenericGate(g Gate, op outputter.Outputter) *GateService {
+func NewGateService(g Gate, op outputter.Outputter) *GateService {
 	return &GateService{
 		ticks:          make(map[uint]*TickState),
 		expectedInputs: g.Inputs(),

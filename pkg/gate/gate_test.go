@@ -35,7 +35,7 @@ func (mg *MockGate) Compute(tick uint, inputs []models.IO) (models.IO, error) {
 
 func TestGateShouldReceiveInputShould(t *testing.T) {
 	t.Run("return the TypeState when all valid inputs are received", func(t *testing.T) {
-		gate := NewGenericGate(&MockGate{
+		gate := NewGateService(&MockGate{
 			inputs: 1,
 		}, &noopOutputter{})
 
@@ -48,7 +48,7 @@ func TestGateShouldReceiveInputShould(t *testing.T) {
 	})
 
 	t.Run("return ts that flags non-ready if all inputs aren't satisfied", func(t *testing.T) {
-		gate := NewGenericGate(&MockGate{
+		gate := NewGateService(&MockGate{
 			inputs: 2,
 		}, &noopOutputter{})
 
@@ -61,7 +61,7 @@ func TestGateShouldReceiveInputShould(t *testing.T) {
 	})
 
 	t.Run("error if inputs are clobbered", func(t *testing.T) {
-		gate := NewGenericGate(&MockGate{
+		gate := NewGateService(&MockGate{
 			inputs: 2,
 		}, &noopOutputter{})
 
