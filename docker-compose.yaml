@@ -83,3 +83,19 @@ services:
         ]
     ports:
       - 8084:8080
+  nor_gate:
+    build: .
+    environment:
+      LISTEN_ADDR: "0.0.0.0:80"
+      SERVICE_TYPE: nor
+      OUTPUT_TYPE: stdout
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://127.0.0.1:8080/healthcheck"
+        ]
+    ports:
+      - 8085:8080
