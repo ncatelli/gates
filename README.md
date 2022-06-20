@@ -37,7 +37,7 @@ $> make test
 The gate service can be configured via the following environment variables:
 
 - LISTEN_ADDR:		`string`	The server address gates binds to.
-- SERVICE_TY:		`string`	A service or gate to emulate. [choices: and, not, or, xor]
+- SERVICE_TY:		`string`	A service or gate to emulate. [choices: not, and, or, xor, nand, nor]
 - OUTPUT_TY:		`url.URL`	A an outputer to send a computed output to. [choices: stdout, http]
 - OUTPUT_ADDRS:		`[]url.URL`	An optional list of address for the http outputter to send a computed output to.
 

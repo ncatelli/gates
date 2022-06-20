@@ -6,18 +6,18 @@ import (
 	"github.com/ncatelli/gates/pkg/models"
 )
 
-func TestNandShouldCompute(t *testing.T) {
+func TestNorShouldCompute(t *testing.T) {
 	t.Run("the correct value for truth table", func(t *testing.T) {
 		var tick uint = 0
 		truthTable := [][3]models.IO{
 			{false, false, true},
-			{true, false, true},
-			{false, true, true},
+			{true, false, false},
+			{false, true, false},
 			{true, true, false},
 		}
 
 		for _, prop := range truthTable {
-			gate := NewGenericGate(&Nand{}, &noopOutputter{})
+			gate := NewGenericGate(&Nor{}, &noopOutputter{})
 
 			a_in := prop[0]
 			b_in := prop[1]
@@ -43,7 +43,7 @@ func TestNandShouldCompute(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			} else if output != expected_output {
-				t.Errorf("wrong output for nand gate: wanted %v got %v", expected_output, output)
+				t.Errorf("wrong output for nor gate: wanted %v got %v", expected_output, output)
 			}
 		}
 	})
