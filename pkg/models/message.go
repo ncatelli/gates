@@ -19,3 +19,8 @@ type ServicePostBody struct {
 	State bool `json:"state"`
 	Tick  uint `json:"tick"`
 }
+
+type SignalEvent struct {
+	State bool `json:"state"`
+	Tick  uint `json:"tick"`
+}
