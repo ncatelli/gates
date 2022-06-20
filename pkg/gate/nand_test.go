@@ -43,7 +43,7 @@ func TestNandShouldCompute(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			} else if output != expected_output {
-				t.Errorf("wrong output for and gate: wanted %v got %v", expected_output, output)
+				t.Errorf("wrong output for nand gate: wanted %v got %v", expected_output, output)
 			}
 		}
 	})
