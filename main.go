@@ -76,6 +76,9 @@ func instantiateGateFromConfig(c *config.Config) gate.Gate {
 		g = &gate.Or{}
 	case "xor":
 		g = &gate.Xor{}
+	case "nand":
+		g = &gate.Nand{}
+
 	}
 
 	return g

@@ -66,3 +66,20 @@ services:
         ]
     ports:
       - 8083:8080
+  nand_gate:
+    build: .
+    environment:
+      LISTEN_ADDR: "0.0.0.0:80"
+      SERVICE_TYPE: nand
+      OUTPUT_TYPE: http
+      OUTPUT_ADDRS: 'http://xor_gate:8080/input/a,http://xor_gate:8080/input/b'
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://127.0.0.1:8080/healthcheck"
+        ]
+    ports:
+      - 8084:8080
