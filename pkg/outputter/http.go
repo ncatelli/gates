@@ -11,7 +11,7 @@ import (
 )
 
 type HttpOutputter struct {
-	Endpoints []*url.URL
+	Endpoints []url.URL
 }
 
 func (ho *HttpOutputter) Output(tick uint, state models.IO) error {

@@ -76,6 +76,9 @@ func instantiateGateFromConfig(c *config.Config) gate.Gate {
 		g = &gate.Or{}
 	case "xor":
 		g = &gate.Xor{}
+	case "nand":
+		g = &gate.Nand{}
+
 	}
 
 	return g
@@ -88,10 +91,8 @@ func instantiateOutputterFromConfig(c *config.Config) outputter.Outputter {
 	case "stdout":
 		o = &outputter.StdOutOutputter{}
 	case "http":
-		endpoints := make([]*url.URL, 0, len(c.OutputAddrs))
-		for _, addr := range c.OutputAddrs {
-			endpoints = append(endpoints, &addr)
-		}
+		endpoints := make([]url.URL, 0, len(c.OutputAddrs))
+		endpoints = append(endpoints, c.OutputAddrs...)
 
 		o = &outputter.HttpOutputter{Endpoints: endpoints}
 	}

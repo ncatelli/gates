@@ -40,7 +40,7 @@ type Config struct {
 	ListenAddr  string    `env:"ListenAddr" envDefault:"0.0.0.0:8080"`
 	ServiceTy   string    `env:"SERVICE_TYPE"`
 	OutputTy    string    `env:"OUTPUT_TYPE" envDefault:"stdout"`
-	OutputAddrs []url.URL `env:"OUTPUT_ADDRS" envSeparator:" " envDefault:""`
+	OutputAddrs []url.URL `env:"OUTPUT_ADDRS" envSeparator:"," envDefault:""`
 }
 
 // New initializes a Config, attempting to parse parames from Envs.
@@ -60,6 +60,8 @@ func New() (Config, error) {
 	case "not":
 		valid = true
 	case "xor":
+		valid = true
+	case "nand":
 		valid = true
 	default:
 		valid = false
