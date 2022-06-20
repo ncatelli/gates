@@ -21,7 +21,7 @@ func TestOutputterRequest(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		op := HttpOutputter{Endpoints: []*url.URL{u}}
+		op := HttpOutputter{Endpoints: []url.URL{*u}}
 		if err = op.Output(0, false); err != nil {
 			t.Fatal(err)
 		}
@@ -39,7 +39,7 @@ func TestOutputterRequest(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		op := HttpOutputter{Endpoints: []*url.URL{u}}
+		op := HttpOutputter{Endpoints: []url.URL{*u}}
 		if err = op.Output(0, false); err == nil {
 			t.Fatal(errors.New("outputter should return an error on non-202 response code"))
 		}
