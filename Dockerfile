@@ -26,7 +26,7 @@ COPY --from=builder /${APP_NAME} /opt/${APP_NAME}/bin/${APP_NAME}
 RUN chown -R ${SERVICE_USER}:${SERVICE_USER} /opt/${APP_NAME}/bin/${APP_NAME} && \
 	chmod +x /opt/${APP_NAME}/bin/${APP_NAME}
 
-RUN apk --no-cache add curl
+RUN apk --no-cache add curl bash
 
 WORKDIR "/opt/${APP_NAME}/"
 USER ${SERVICE_USER}
