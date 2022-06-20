@@ -93,7 +93,8 @@ func instantiateOutputterFromConfig(c *config.Config) outputter.Outputter {
 	case "http":
 		endpoints := make([]*url.URL, 0, len(c.OutputAddrs))
 		for _, addr := range c.OutputAddrs {
-			endpoints = append(endpoints, &addr)
+			addrRef := addr
+			endpoints = append(endpoints, &addrRef)
 		}
 
 		o = &outputter.HttpOutputter{Endpoints: endpoints}
