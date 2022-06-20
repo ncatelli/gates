@@ -63,6 +63,8 @@ func New() (Config, error) {
 		valid = true
 	case "nand":
 		valid = true
+	case "nor":
+		valid = true
 	default:
 		valid = false
 	}
