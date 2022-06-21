@@ -1,0 +1,39 @@
+version: '3'
+services:
+  and_gate:
+    build: .
+    environment:
+      LISTEN_ADDR: "0.0.0.0:80"
+      SERVICE_TYPE: and
+      OUTPUT_TYPE: stdout
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://127.0.0.1:8080/healthcheck"
+        ]
+  xor_gate:
+    build: .
+    environment:
+      LISTEN_ADDR: "0.0.0.0:80"
+      SERVICE_TYPE: xor
+      OUTPUT_TYPE: stdout
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://127.0.0.1:8080/healthcheck"
+        ]
+  input:
+    build: .
+    entrypoint: >
+      /bin/bash -c "for TICK in {0..1024}; do curl -X POST -s -d '{\"state\": true, \"tick\":'$$TICK'}' http://{xor_gate,and_gate}:8080/input/{a,b}; done"
+    depends_on:
+      xor_gate:
+        condition: service_healthy
+      and_gate:
+        condition: service_healthy
