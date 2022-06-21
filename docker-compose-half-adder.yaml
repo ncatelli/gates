@@ -2,10 +2,7 @@ version: '3'
 services:
   and_gate:
     build: .
-    environment:
-      LISTEN_ADDR: "0.0.0.0:80"
-      SERVICE_TYPE: and
-      OUTPUT_TYPE: stdout
+    command: and -listen-addr '0.0.0.0:8080'
     healthcheck:
       test:
         [
@@ -16,10 +13,7 @@ services:
         ]
   xor_gate:
     build: .
-    environment:
-      LISTEN_ADDR: "0.0.0.0:80"
-      SERVICE_TYPE: xor
-      OUTPUT_TYPE: stdout
+    command: xor -listen-addr '0.0.0.0:8080'
     healthcheck:
       test:
         [

@@ -2,11 +2,7 @@ version: '3'
 services:
   not_gate:
     build: .
-    environment:
-      LISTEN_ADDR: "0.0.0.0:8080"
-      SERVICE_TYPE: not
-      OUTPUT_TYPE: http
-      OUTPUT_ADDRS: 'http://and_gate:8080/input/a'
+    command: not -listen-addr '0.0.0.0:8080' -output-addrs 'http://and_gate:8080/input/a'
     healthcheck:
       test:
         [
@@ -19,11 +15,7 @@ services:
       - 8080:8080
   or_gate:
     build: .
-    environment:
-      LISTEN_ADDR: "0.0.0.0:8080"
-      SERVICE_TYPE: or
-      OUTPUT_TYPE: http
-      OUTPUT_ADDRS: 'http://and_gate:8080/input/b'
+    command: or -listen-addr '0.0.0.0:8080' -output-addrs 'http://and_gate:8080/input/b'
     healthcheck:
       test:
         [
@@ -36,10 +28,7 @@ services:
       - 8081:8080
   and_gate:
     build: .
-    environment:
-      LISTEN_ADDR: "0.0.0.0:80"
-      SERVICE_TYPE: and
-      OUTPUT_TYPE: stdout
+    command: and -listen-addr '0.0.0.0:8080'
     healthcheck:
       test:
         [
@@ -52,10 +41,7 @@ services:
       - 8082:8080
   xor_gate:
     build: .
-    environment:
-      LISTEN_ADDR: "0.0.0.0:80"
-      SERVICE_TYPE: xor
-      OUTPUT_TYPE: stdout
+    command: xor -listen-addr '0.0.0.0:8080'
     healthcheck:
       test:
         [
@@ -68,11 +54,7 @@ services:
       - 8083:8080
   nand_gate:
     build: .
-    environment:
-      LISTEN_ADDR: "0.0.0.0:80"
-      SERVICE_TYPE: nand
-      OUTPUT_TYPE: http
-      OUTPUT_ADDRS: 'http://xor_gate:8080/input/a,http://xor_gate:8080/input/b'
+    command: nand -listen-addr 0.0.0.0:8080 -output-addrs 'http://xor_gate:8080/input/a,http://xor_gate:8080/input/b'
     healthcheck:
       test:
         [
@@ -85,10 +67,7 @@ services:
       - 8084:8080
   nor_gate:
     build: .
-    environment:
-      LISTEN_ADDR: "0.0.0.0:80"
-      SERVICE_TYPE: nor
-      OUTPUT_TYPE: stdout
+    command: nor listen-addr '0.0.0.0:8080'
     healthcheck:
       test:
         [

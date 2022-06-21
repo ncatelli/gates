@@ -166,8 +166,6 @@ output to. If empty the stdout outputter is used.`)
 			addr, err := url.Parse(addrStr)
 			if err != nil {
 				return nil, err
-			} else if addr == nil {
-				continue
 			}
 
 			endpoints = append(endpoints, *addr)
