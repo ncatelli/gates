@@ -151,7 +151,7 @@ func parseCommands() (func(*sync.WaitGroup) (*http.Server, chan<- bool), error) 
 		// setup the flags
 		gateCmd := flag.NewFlagSet(cmd, flag.ExitOnError)
 		gateCmd.StringVar(&listenAddr, "listen-addr", "127.0.0.1:8080", "The server address gates binds to.")
-		gateCmd.StringVar(&outputAddr, "output-addrs", "", `An optional comma-separated list of address for the http outputter to send a computed
+		gateCmd.StringVar(&outputAddr, "output-addrs", "", `An optional comma-separated list of URLs for the http outputter to send a computed
 output to. If empty the stdout outputter is used.`)
 		gateCmd.Parse(os.Args[2:])
 

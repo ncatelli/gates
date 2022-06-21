@@ -34,12 +34,24 @@ $> make test
 
 ## Configuration
 ### Services
-The gate service can be configured via the following environment variables:
+The service can be configured via the following subcommands and flags:
 
-- LISTEN_ADDR:		`string`	The server address gates binds to.
-- SERVICE_TY:		`string`	A service or gate to emulate. [choices: not, and, or, xor, nand, nor]
-- OUTPUT_TY:		`url.URL`	A an outputer to send a computed output to. [choices: stdout, http]
-- OUTPUT_ADDRS:		`[]url.URL`	An optional list of address for the http outputter to send a computed output to.
+#### Subcommands
+##### Gates
+The following subcommands are valid gates
+- not
+- and
+- or
+- xor
+- nand
+- nor
+
+Of these, the following flags can be set. Be aware that the output-addr determines if gate output is sent to stdout or to another http service.
+
+- listen-addr string
+    The server address gates binds to. (default "127.0.0.1:8080")
+- output-addrs string
+    An optional comma-separated list of URLs for the http outputter to send a computed output to. If empty the stdout outputter is used.
 
 ## Usage
 ### Example
