@@ -2,10 +2,7 @@ version: '3'
 services:
   and_gate:
     build: .
-    environment:
-      LISTEN_ADDR: "0.0.0.0:80"
-      SERVICE_TYPE: and
-      OUTPUT_TYPE: stdout
+    command: and -listen-addr '0.0.0.0:8080'
     healthcheck:
       test:
         [
@@ -16,10 +13,7 @@ services:
         ]
   xor_gate:
     build: .
-    environment:
-      LISTEN_ADDR: "0.0.0.0:80"
-      SERVICE_TYPE: xor
-      OUTPUT_TYPE: stdout
+    command: xor -listen-addr '0.0.0.0:8080'
     healthcheck:
       test:
         [
@@ -31,7 +25,7 @@ services:
   input:
     build: .
     entrypoint: >
-      /bin/bash -c "for TICK in {0..1024}; do curl -X POST -s -d '{\"state\": true, \"tick\":'$$TICK'}' http://{xor_gate,and_gate}:8080/input/{a,b}; done"
+      /bin/bash -c "for TICK in {0..1024}; do curl -X POST -s -d '{\"state\": true, \"tick\":'$$TICK'}' http://{xor_gate,and_gate}:8080/input/{a,b} && sleep 1; done"
     depends_on:
       xor_gate:
         condition: service_healthy
