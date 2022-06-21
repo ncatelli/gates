@@ -43,7 +43,7 @@ The gate service can be configured via the following environment variables:
 
 ## Usage
 ### Example
-#### Compose
+#### docker-compose.yaml
 A minimal compose environment that showcases a few gates is available in the repo. This can be started by running:
 
 ```bash
@@ -113,3 +113,6 @@ Finally, this can all be cleaned up with the following:
 ```bash
 docker-compose down -v --rmi local
 ```
+
+#### docker-compose-half-adder.yaml
+This implementation provides a half-adder along with a single inputter service that loops continuously, sending a `true` input.
