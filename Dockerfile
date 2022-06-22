@@ -1,4 +1,3 @@
-
 ARG BASEIMG="alpine:3.16"
 ARG BUILDIMG="golang:1.17-alpine"
 FROM $BUILDIMG as builder
